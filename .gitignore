@@ -1,0 +1,50 @@
+# Development files
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Build artifacts
+build/
+dist/
+*.o
+*.so
+*.a
+
+# Hardware design files
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-cache.lib
+*-rescue.lib
+fp-info-cache
+
+# Software
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+
+# Documentation builds
+docs/_build/
+*.pdf
+
+# Sensitive files
+secrets/
+private/
+*.key
+*.pem
+
+# Temporary backups
+*.backup
+*.bak

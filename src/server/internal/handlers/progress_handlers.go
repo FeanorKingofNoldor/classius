@@ -126,24 +126,24 @@ type ReadingGoalsResponse struct {
 func GetReadingProgress(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	bookID := c.Query("book_id")
-	database := db.GetDB()
+	database := db.DB
 
 	if bookID != "" {
 		// Get progress for specific book
 		bookUUID, err := uuid.Parse(bookID)
 		if err != nil {
-			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID")
+			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID", nil)
 			return
 		}
 
@@ -151,15 +151,15 @@ func GetReadingProgress(c *gin.Context) {
 		if err := database.Preload("Book").Where("user_id = ? AND book_id = ? AND deleted_at IS NULL", userUUID, bookUUID).
 			First(&progress).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
-				utils.ErrorResponse(c, http.StatusNotFound, "Reading progress not found")
+				utils.ErrorResponse(c, http.StatusNotFound, "Reading progress not found", nil)
 				return
 			}
-			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading progress")
+			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading progress", nil)
 			return
 		}
 
 		response := convertProgressToResponse(&progress)
-		utils.SuccessResponse(c, http.StatusOK, "Reading progress retrieved successfully", response)
+		utils.SuccessResponse(c, "Reading progress retrieved successfully", response)
 		return
 	}
 
@@ -185,7 +185,7 @@ func GetReadingProgress(c *gin.Context) {
 	// Get paginated results
 	offset := (page - 1) * perPage
 	if err := query.Offset(offset).Limit(perPage).Order("last_read DESC").Find(&progresses).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading progress")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading progress", nil)
 		return
 	}
 
@@ -196,7 +196,7 @@ func GetReadingProgress(c *gin.Context) {
 
 	totalPages := (int(total) + perPage - 1) / perPage
 	
-	utils.SuccessResponse(c, http.StatusOK, "Reading progress retrieved successfully", map[string]interface{}{
+	utils.SuccessResponse(c, "Reading progress retrieved successfully", map[string]interface{}{
 		"progress": responses,
 		"pagination": map[string]interface{}{
 			"page":        page,
@@ -213,33 +213,33 @@ func GetReadingProgress(c *gin.Context) {
 func UpdateReadingProgress(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req ReadingProgressRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid progress data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid progress data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Verify user has access to the book
 	var userBook models.UserBook
 	if err := database.Where("user_id = ? AND book_id = ? AND deleted_at IS NULL", userUUID, req.BookID).
 		First(&userBook).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library")
+			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access", nil)
 		return
 	}
 
@@ -264,11 +264,11 @@ func UpdateReadingProgress(c *gin.Context) {
 		}
 
 		if err := database.Create(&progress).Error; err != nil {
-			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create reading progress")
+			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create reading progress", nil)
 			return
 		}
 	} else if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading progress")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading progress", nil)
 		return
 	} else {
 		// Update existing progress
@@ -285,39 +285,39 @@ func UpdateReadingProgress(c *gin.Context) {
 		}
 
 		if err := database.Model(&progress).Updates(updateData).Error; err != nil {
-			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update reading progress")
+			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update reading progress", nil)
 			return
 		}
 	}
 
 	// Reload with book details
 	if err := database.Preload("Book").First(&progress, progress.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Progress updated but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Progress updated but failed to load details", nil)
 		return
 	}
 
 	response := convertProgressToResponse(&progress)
-	utils.SuccessResponse(c, http.StatusOK, "Reading progress updated successfully", response)
+	utils.SuccessResponse(c, "Reading progress updated successfully", response)
 }
 
 // StartReadingSession starts a new reading session
 func StartReadingSession(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	bookIDStr := c.Param("book_id")
 	bookID, err := uuid.Parse(bookIDStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID", nil)
 		return
 	}
 
@@ -328,21 +328,21 @@ func StartReadingSession(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid session data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid session data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Verify user has access to the book
 	var userBook models.UserBook
 	if err := database.Where("user_id = ? AND book_id = ? AND deleted_at IS NULL", userUUID, bookID).
 		First(&userBook).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library")
+			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access", nil)
 		return
 	}
 
@@ -357,38 +357,38 @@ func StartReadingSession(c *gin.Context) {
 	}
 
 	if err := database.Create(&session).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to start reading session")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to start reading session", nil)
 		return
 	}
 
 	// Load session with book details
 	if err := database.Preload("Book").First(&session, session.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Session created but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Session created but failed to load details", nil)
 		return
 	}
 
 	response := convertSessionToResponse(&session)
-	utils.SuccessResponse(c, http.StatusCreated, "Reading session started successfully", response)
+	utils.SuccessResponse(c, "Reading session started successfully", response)
 }
 
 // EndReadingSession ends a reading session
 func EndReadingSession(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	sessionIDStr := c.Param("session_id")
 	sessionID, err := uuid.Parse(sessionIDStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid session ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid session ID", nil)
 		return
 	}
 
@@ -399,21 +399,21 @@ func EndReadingSession(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid session end data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid session end data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find and verify ownership of session
 	var session models.ReadingSession
 	if err := database.Where("id = ? AND user_id = ?", sessionID, userUUID).
 		First(&session).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Reading session not found")
+			utils.ErrorResponse(c, http.StatusNotFound, "Reading session not found", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading session")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading session", nil)
 		return
 	}
 
@@ -430,31 +430,31 @@ func EndReadingSession(c *gin.Context) {
 	}
 
 	if err := database.Model(&session).Updates(updateData).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to end reading session")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to end reading session", nil)
 		return
 	}
 
 	// Reload with book details
 	if err := database.Preload("Book").First(&session, session.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Session updated but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Session updated but failed to load details", nil)
 		return
 	}
 
 	response := convertSessionToResponse(&session)
-	utils.SuccessResponse(c, http.StatusOK, "Reading session ended successfully", response)
+	utils.SuccessResponse(c, "Reading session ended successfully", response)
 }
 
 // GetReadingSessions gets reading sessions for a user
 func GetReadingSessions(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
@@ -469,13 +469,13 @@ func GetReadingSessions(c *gin.Context) {
 		perPage = 20
 	}
 
-	database := db.GetDB()
+	database := db.DB
 	query := database.Preload("Book").Where("user_id = ?", userUUID)
 
 	if bookID != "" {
 		bookUUID, err := uuid.Parse(bookID)
 		if err != nil {
-			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID")
+			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID", nil)
 			return
 		}
 		query = query.Where("book_id = ?", bookUUID)
@@ -490,7 +490,7 @@ func GetReadingSessions(c *gin.Context) {
 	// Get paginated results
 	offset := (page - 1) * perPage
 	if err := query.Offset(offset).Limit(perPage).Order("started_at DESC").Find(&sessions).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading sessions")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve reading sessions", nil)
 		return
 	}
 
@@ -501,7 +501,7 @@ func GetReadingSessions(c *gin.Context) {
 
 	totalPages := (int(total) + perPage - 1) / perPage
 	
-	utils.SuccessResponse(c, http.StatusOK, "Reading sessions retrieved successfully", map[string]interface{}{
+	utils.SuccessResponse(c, "Reading sessions retrieved successfully", map[string]interface{}{
 		"sessions": responses,
 		"pagination": map[string]interface{}{
 			"page":        page,
@@ -518,33 +518,33 @@ func GetReadingSessions(c *gin.Context) {
 func CreateBookmark(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req BookmarkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Verify user has access to the book
 	var userBook models.UserBook
 	if err := database.Where("user_id = ? AND book_id = ? AND deleted_at IS NULL", userUUID, req.BookID).
 		First(&userBook).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library")
+			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access", nil)
 		return
 	}
 
@@ -558,43 +558,43 @@ func CreateBookmark(c *gin.Context) {
 	}
 
 	if err := database.Create(&bookmark).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create bookmark")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create bookmark", nil)
 		return
 	}
 
 	// Load bookmark with book details
 	if err := database.Preload("Book").First(&bookmark, bookmark.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Bookmark created but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Bookmark created but failed to load details", nil)
 		return
 	}
 
 	response := convertBookmarkToResponse(&bookmark)
-	utils.SuccessResponse(c, http.StatusCreated, "Bookmark created successfully", response)
+	utils.SuccessResponse(c, "Bookmark created successfully", response)
 }
 
 // GetBookmarks gets bookmarks for a user or book
 func GetBookmarks(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	bookID := c.Query("book_id")
-	database := db.GetDB()
+	database := db.DB
 
 	query := database.Preload("Book").Where("user_id = ? AND deleted_at IS NULL", userUUID)
 
 	if bookID != "" {
 		bookUUID, err := uuid.Parse(bookID)
 		if err != nil {
-			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID")
+			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID", nil)
 			return
 		}
 		query = query.Where("book_id = ?", bookUUID)
@@ -602,7 +602,7 @@ func GetBookmarks(c *gin.Context) {
 
 	var bookmarks []models.Bookmark
 	if err := query.Order("page_number ASC").Find(&bookmarks).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve bookmarks")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve bookmarks", nil)
 		return
 	}
 
@@ -611,27 +611,27 @@ func GetBookmarks(c *gin.Context) {
 		responses[i] = convertBookmarkToResponse(&bookmark)
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Bookmarks retrieved successfully", responses)
+	utils.SuccessResponse(c, "Bookmarks retrieved successfully", responses)
 }
 
 // UpdateBookmark updates a bookmark
 func UpdateBookmark(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	bookmarkIDStr := c.Param("id")
 	bookmarkID, err := uuid.Parse(bookmarkIDStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark ID", nil)
 		return
 	}
 
@@ -642,21 +642,21 @@ func UpdateBookmark(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark update data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark update data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find and verify ownership
 	var bookmark models.Bookmark
 	if err := database.Where("id = ? AND user_id = ? AND deleted_at IS NULL", bookmarkID, userUUID).
 		First(&bookmark).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Bookmark not found")
+			utils.ErrorResponse(c, http.StatusNotFound, "Bookmark not found", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve bookmark")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve bookmark", nil)
 		return
 	}
 
@@ -673,84 +673,84 @@ func UpdateBookmark(c *gin.Context) {
 	}
 
 	if len(updateData) == 0 {
-		utils.ErrorResponse(c, http.StatusBadRequest, "No valid updates provided")
+		utils.ErrorResponse(c, http.StatusBadRequest, "No valid updates provided", nil)
 		return
 	}
 
 	if err := database.Model(&bookmark).Updates(updateData).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update bookmark")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update bookmark", nil)
 		return
 	}
 
 	// Reload with book details
 	if err := database.Preload("Book").First(&bookmark, bookmark.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Bookmark updated but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Bookmark updated but failed to load details", nil)
 		return
 	}
 
 	response := convertBookmarkToResponse(&bookmark)
-	utils.SuccessResponse(c, http.StatusOK, "Bookmark updated successfully", response)
+	utils.SuccessResponse(c, "Bookmark updated successfully", response)
 }
 
 // DeleteBookmark deletes a bookmark
 func DeleteBookmark(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	bookmarkIDStr := c.Param("id")
 	bookmarkID, err := uuid.Parse(bookmarkIDStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bookmark ID", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find and verify ownership
 	var bookmark models.Bookmark
 	if err := database.Where("id = ? AND user_id = ? AND deleted_at IS NULL", bookmarkID, userUUID).
 		First(&bookmark).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Bookmark not found")
+			utils.ErrorResponse(c, http.StatusNotFound, "Bookmark not found", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve bookmark")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve bookmark", nil)
 		return
 	}
 
 	// Soft delete
 	if err := database.Delete(&bookmark).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete bookmark")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete bookmark", nil)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Bookmark deleted successfully", nil)
+	utils.SuccessResponse(c, "Bookmark deleted successfully", nil)
 }
 
 // GetReadingStats gets comprehensive reading statistics
 func GetReadingStats(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 	
 	// Get basic reading stats
 	var totalReadingTime int64
@@ -828,7 +828,7 @@ func GetReadingStats(c *gin.Context) {
 		ReadingGoals:        goals,
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Reading statistics retrieved successfully", response)
+	utils.SuccessResponse(c, "Reading statistics retrieved successfully", response)
 }
 
 // Helper conversion functions

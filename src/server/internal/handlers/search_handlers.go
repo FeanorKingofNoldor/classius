@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/classius/server/internal/db"
-	"github.com/classius/server/internal/models"
 	"github.com/classius/server/internal/utils"
 )
 
@@ -121,19 +119,19 @@ type SearchFilters struct {
 func GlobalSearch(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req SearchRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid search parameters")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid search parameters", nil)
 		return
 	}
 
@@ -154,10 +152,10 @@ func GlobalSearch(c *gin.Context) {
 		req.SortOrder = "desc"
 	}
 
-	database := db.GetDB()
+	database := db.DB
 	results, total, filters, err := performSearch(database, userUUID, req)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Search failed")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Search failed", nil)
 		return
 	}
 
@@ -173,7 +171,7 @@ func GlobalSearch(c *gin.Context) {
 		Filters:    *filters,
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Search completed successfully", response)
+	utils.SuccessResponse(c, "Search completed successfully", response)
 }
 
 func performSearch(database *gorm.DB, userID uuid.UUID, req SearchRequest) (*SearchResults, int, *SearchFilters, error) {

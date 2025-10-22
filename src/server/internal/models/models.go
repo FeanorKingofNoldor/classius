@@ -211,6 +211,26 @@ type NoteOverlay struct {
 	PublishedNote PublishedNote `json:"published_note,omitempty"`
 }
 
+// ReadingSession tracks individual reading sessions
+type ReadingSession struct {
+	BaseModel
+	UserID          uuid.UUID  `json:"user_id" gorm:"not null;index"`
+	BookID          uuid.UUID  `json:"book_id" gorm:"not null;index"`
+	StartedAt       time.Time  `json:"started_at" gorm:"not null"`
+	EndedAt         *time.Time `json:"ended_at"`
+	DurationMinutes int        `json:"duration_minutes" gorm:"default:0"`
+	PagesRead       int        `json:"pages_read" gorm:"default:0"`
+	StartPage       *int       `json:"start_page"`
+	EndPage         *int       `json:"end_page"`
+	StartPosition   int        `json:"start_position" gorm:"default:0"`
+	EndPosition     int        `json:"end_position" gorm:"default:0"`
+	DeviceType      *string    `json:"device_type" gorm:"size:50"`
+	
+	// Relationships
+	User User `json:"user,omitempty"`
+	Book Book `json:"book,omitempty"`
+}
+
 // UserSession manages user authentication sessions
 type UserSession struct {
 	BaseModel

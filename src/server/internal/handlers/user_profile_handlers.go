@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -223,69 +222,69 @@ type AnnotationActivity struct {
 	Count int    `json:"count"`
 }
 
-// GetUserProfile returns comprehensive user profile information
-func GetUserProfile(c *gin.Context) {
+// GetUserProfileDetailed returns comprehensive user profile information (renamed to avoid conflict)
+func GetUserProfileDetailed(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Get user details
 	var user models.User
-	if err := database.Where("id = ? AND deleted_at IS NULL", userUUID).First(&user).Error; err != nil {
+	if err := database.Where("id = ?", userUUID).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "User not found")
+			utils.ErrorResponse(c, http.StatusNotFound, "User not found", err)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve user profile")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve user profile", err)
 		return
 	}
 
 	// Build comprehensive profile response
 	profile, err := buildUserProfile(database, &user)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to build user profile")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to build user profile", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "User profile retrieved successfully", profile)
+	utils.SuccessResponse(c, "User profile retrieved successfully", profile)
 }
 
-// UpdateUserProfile updates user profile information
-func UpdateUserProfile(c *gin.Context) {
+// UpdateUserProfileDetailed updates user profile information (renamed to avoid conflict)
+func UpdateUserProfileDetailed(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", err)
 		return
 	}
 
 	var req UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid profile data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid profile data: "+err.Error(), err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find user
 	var user models.User
-	if err := database.Where("id = ? AND deleted_at IS NULL", userUUID).First(&user).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusNotFound, "User not found")
+	if err := database.Where("id = ?", userUUID).First(&user).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "User not found", err)
 		return
 	}
 
@@ -301,7 +300,7 @@ func UpdateUserProfile(c *gin.Context) {
 
 	if len(updateData) > 1 { // More than just last_active
 		if err := database.Model(&user).Updates(updateData).Error; err != nil {
-			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update profile")
+			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update profile", err)
 			return
 		}
 	}
@@ -309,18 +308,18 @@ func UpdateUserProfile(c *gin.Context) {
 	// Build and return updated profile
 	profile, err := buildUserProfile(database, &user)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Profile updated but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Profile updated but failed to load details", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Profile updated successfully", profile)
+	utils.SuccessResponse(c, "Profile updated successfully", profile)
 }
 
 // GetUserPreferences returns user preferences
 func GetUserPreferences(c *gin.Context) {
-	userID, exists := c.Get("user_id")
+	_, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
@@ -328,26 +327,20 @@ func GetUserPreferences(c *gin.Context) {
 	// In a full implementation, this would load from a user_preferences table
 	preferences := getDefaultPreferences()
 
-	utils.SuccessResponse(c, http.StatusOK, "Preferences retrieved successfully", preferences)
+	utils.SuccessResponse(c, "Preferences retrieved successfully", preferences)
 }
 
 // UpdateUserPreferences updates user preferences
 func UpdateUserPreferences(c *gin.Context) {
-	userID, exists := c.Get("user_id")
+	_, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-
-	userUUID, err := uuid.Parse(userID.(string))
-	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	var req UpdatePreferencesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid preferences data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid preferences data", err)
 		return
 	}
 
@@ -375,62 +368,62 @@ func UpdateUserPreferences(c *gin.Context) {
 		preferences.PrivacySettings = *req.PrivacySettings
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Preferences updated successfully", preferences)
+	utils.SuccessResponse(c, "Preferences updated successfully", preferences)
 }
 
 // GetReadingGoals returns user reading goals
 func GetReadingGoals(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Calculate goal progress
 	goals, err := calculateReadingGoals(database, userUUID)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to calculate reading goals")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to calculate reading goals", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Reading goals retrieved successfully", goals)
+	utils.SuccessResponse(c, "Reading goals retrieved successfully", goals)
 }
 
 // UpdateReadingGoals updates user reading goals
 func UpdateReadingGoals(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req UpdateGoalsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid goals data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid goals data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// For now, simulate successful update and recalculate
 	// In a full implementation, this would update user goals in database
 	goals, err := calculateReadingGoals(database, userUUID)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update reading goals")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update reading goals", err)
 		return
 	}
 
@@ -451,53 +444,53 @@ func UpdateReadingGoals(c *gin.Context) {
 		goals.GoalsEnabled = *req.GoalsEnabled
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Reading goals updated successfully", goals)
+	utils.SuccessResponse(c, "Reading goals updated successfully", goals)
 }
 
 // ChangePassword changes user password
 func ChangePassword(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid password data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid password data", err)
 		return
 	}
 
 	if req.NewPassword != req.ConfirmPassword {
-		utils.ErrorResponse(c, http.StatusBadRequest, "New passwords do not match")
+		utils.ErrorResponse(c, http.StatusBadRequest, "New passwords do not match", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find user and verify current password
 	var user models.User
 	if err := database.Where("id = ? AND deleted_at IS NULL", userUUID).First(&user).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusNotFound, "User not found")
+		utils.ErrorResponse(c, http.StatusNotFound, "User not found", err)
 		return
 	}
 
 	// Check current password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.CurrentPassword)); err != nil {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Current password is incorrect")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Current password is incorrect", nil)
 		return
 	}
 
 	// Hash new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to hash password")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to hash password", err)
 		return
 	}
 
@@ -506,57 +499,57 @@ func ChangePassword(c *gin.Context) {
 		"password_hash": string(hashedPassword),
 		"last_active":   time.Now(),
 	}).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update password")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update password", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Password changed successfully", nil)
+	utils.SuccessResponse(c, "Password changed successfully", nil)
 }
 
 // GetAccountStats returns comprehensive account statistics
 func GetAccountStats(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Get user
 	var user models.User
 	if err := database.Where("id = ? AND deleted_at IS NULL", userUUID).First(&user).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusNotFound, "User not found")
+		utils.ErrorResponse(c, http.StatusNotFound, "User not found", err)
 		return
 	}
 
 	// Build comprehensive stats
 	stats, err := buildAccountStats(database, &user)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate account statistics")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate account statistics", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Account statistics retrieved successfully", stats)
+	utils.SuccessResponse(c, "Account statistics retrieved successfully", stats)
 }
 
 // DeleteAccount handles account deletion (soft delete)
 func DeleteAccount(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
@@ -566,37 +559,37 @@ func DeleteAccount(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid deletion data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid deletion data: ", err)
 		return
 	}
 
 	if !req.Confirm {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Account deletion not confirmed")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Account deletion not confirmed", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find user and verify password
 	var user models.User
 	if err := database.Where("id = ? AND deleted_at IS NULL", userUUID).First(&user).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusNotFound, "User not found")
+		utils.ErrorResponse(c, http.StatusNotFound, "User not found", err)
 		return
 	}
 
 	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Password is incorrect")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Password is incorrect", nil)
 		return
 	}
 
 	// Soft delete user account
 	if err := database.Delete(&user).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete account")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete account", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Account deleted successfully", nil)
+	utils.SuccessResponse(c, "Account deleted successfully", nil)
 }
 
 // Helper functions

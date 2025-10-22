@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -144,27 +142,27 @@ type MostAnnotatedBook struct {
 func GetBookStats(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	// Get time range parameter (week, month, year, all)
 	timeRange := c.DefaultQuery("range", "year")
 
-	database := db.GetDB()
+	database := db.DB
 	stats, err := buildBookStats(database, userUUID, timeRange)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate statistics")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to generate statistics", nil)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Statistics retrieved successfully", stats)
+	utils.SuccessResponse(c, "Statistics retrieved successfully", stats)
 }
 
 func buildBookStats(database *gorm.DB, userID uuid.UUID, timeRange string) (*BookStatsResponse, error) {

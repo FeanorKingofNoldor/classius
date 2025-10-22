@@ -93,11 +93,11 @@ type BookFilterOption struct {
 
 // AnnotationStatsResponse represents annotation statistics
 type AnnotationStatsResponse struct {
-	TotalAnnotations int `json:"total_annotations"`
-	TotalHighlights  int `json:"total_highlights"`
-	TotalNotes       int `json:"total_notes"`
-	TotalBookmarks   int `json:"total_bookmarks"`
-	BooksWithAnnotations int `json:"books_with_annotations"`
+	TotalAnnotations int64 `json:"total_annotations"`
+	TotalHighlights  int64 `json:"total_highlights"`
+	TotalNotes       int64 `json:"total_notes"`
+	TotalBookmarks   int64 `json:"total_bookmarks"`
+	BooksWithAnnotations int64 `json:"books_with_annotations"`
 	MostUsedTags     []TagUsage `json:"most_used_tags"`
 	AnnotationsByMonth []MonthlyAnnotations `json:"annotations_by_month"`
 }
@@ -115,6 +115,21 @@ type MonthlyAnnotations struct {
 	Highlights  int    `json:"highlights"`
 	Notes       int    `json:"notes"`
 	Bookmarks   int    `json:"bookmarks"`
+}
+
+// ExportAnnotation represents annotation export format
+type ExportAnnotation struct {
+	ID           string    `json:"id"`
+	Type         string    `json:"type"`
+	PageNumber   int       `json:"page_number"`
+	SelectedText string    `json:"selected_text"`
+	Content      string    `json:"content"`
+	Color        string    `json:"color"`
+	Tags         []string  `json:"tags"`
+	BookTitle    string    `json:"book_title"`
+	BookAuthor   string    `json:"book_author"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // BulkActionRequest represents bulk operations on annotations
@@ -136,19 +151,19 @@ type BulkActionResponse struct {
 func GetAnnotationsAdvanced(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", err)
 		return
 	}
 
 	var req AnnotationFilterRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid filter parameters")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid filter parameters", err)
 		return
 	}
 
@@ -166,10 +181,10 @@ func GetAnnotationsAdvanced(c *gin.Context) {
 		req.SortOrder = "desc"
 	}
 
-	database := db.GetDB()
+	database := db.DB
 	annotations, pagination, filters, stats, err := getAnnotationsWithFilters(database, userUUID, req)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve annotations")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve annotations", err)
 		return
 	}
 
@@ -186,47 +201,47 @@ func GetAnnotationsAdvanced(c *gin.Context) {
 		response.Stats = stats
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Annotations retrieved successfully", response)
+	utils.SuccessResponse(c, "Annotations retrieved successfully", response)
 }
 
 // CreateAnnotationEnhanced creates a new annotation with enhanced validation
 func CreateAnnotationEnhanced(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req CreateAnnotationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid annotation data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid annotation data", err)
 		return
 	}
 
 	// Validate annotation type
 	validTypes := map[string]bool{"highlight": true, "note": true, "bookmark": true}
 	if !validTypes[req.Type] {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid annotation type")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid annotation type", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Verify user has access to the book
 	var userBook models.UserBook
 	if err := database.Where("user_id = ? AND book_id = ? AND deleted_at IS NULL", userUUID, req.BookID).
 		First(&userBook).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library")
+			utils.ErrorResponse(c, http.StatusForbidden, "Book not found in your library", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to verify book access", nil)
 		return
 	}
 
@@ -246,57 +261,57 @@ func CreateAnnotationEnhanced(c *gin.Context) {
 	}
 
 	if err := database.Create(&annotation).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create annotation")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to create annotation", nil)
 		return
 	}
 
 	// Load annotation with book details
 	if err := database.Preload("Book").First(&annotation, annotation.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Annotation created but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Annotation created but failed to load details", nil)
 		return
 	}
 
 	response := convertToEnhancedResponse(&annotation)
-	utils.SuccessResponse(c, http.StatusCreated, "Annotation created successfully", response)
+	utils.SuccessResponse(c, "Annotation created successfully", response)
 }
 
 // UpdateAnnotationEnhanced updates an annotation with enhanced validation
 func UpdateAnnotationEnhanced(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	annotationID := c.Param("id")
 	if annotationID == "" {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Annotation ID is required")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Annotation ID is required", nil)
 		return
 	}
 
 	var req UpdateAnnotationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid update data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid update data", err)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find and verify ownership
 	var annotation models.Annotation
 	if err := database.Where("id = ? AND user_id = ? AND deleted_at IS NULL", annotationID, userUUID).
 		First(&annotation).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Annotation not found")
+			utils.ErrorResponse(c, http.StatusNotFound, "Annotation not found", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve annotation")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve annotation", nil)
 		return
 	}
 
@@ -316,120 +331,120 @@ func UpdateAnnotationEnhanced(c *gin.Context) {
 	}
 
 	if len(updateData) == 0 {
-		utils.ErrorResponse(c, http.StatusBadRequest, "No valid updates provided")
+		utils.ErrorResponse(c, http.StatusBadRequest, "No valid updates provided", nil)
 		return
 	}
 
 	// Update annotation
 	if err := database.Model(&annotation).Updates(updateData).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update annotation")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update annotation", nil)
 		return
 	}
 
 	// Reload with book details
 	if err := database.Preload("Book").First(&annotation, annotation.ID).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Update completed but failed to load details")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Update completed but failed to load details", nil)
 		return
 	}
 
 	response := convertToEnhancedResponse(&annotation)
-	utils.SuccessResponse(c, http.StatusOK, "Annotation updated successfully", response)
+	utils.SuccessResponse(c, "Annotation updated successfully", response)
 }
 
 // DeleteAnnotationEnhanced deletes an annotation with enhanced validation
 func DeleteAnnotationEnhanced(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	annotationID := c.Param("id")
 	if annotationID == "" {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Annotation ID is required")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Annotation ID is required", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Find and verify ownership
 	var annotation models.Annotation
 	if err := database.Where("id = ? AND user_id = ? AND deleted_at IS NULL", annotationID, userUUID).
 		First(&annotation).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Annotation not found")
+			utils.ErrorResponse(c, http.StatusNotFound, "Annotation not found", nil)
 			return
 		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve annotation")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve annotation", nil)
 		return
 	}
 
 	// Soft delete
 	if err := database.Delete(&annotation).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete annotation")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete annotation", nil)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Annotation deleted successfully", nil)
+	utils.SuccessResponse(c, "Annotation deleted successfully", nil)
 }
 
 // BulkAnnotationActions performs bulk operations on annotations
 func BulkAnnotationActions(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
 	var req BulkActionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bulk action data: "+err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid bulk action data", err)
 		return
 	}
 
 	if len(req.AnnotationIDs) == 0 {
-		utils.ErrorResponse(c, http.StatusBadRequest, "No annotations specified")
+		utils.ErrorResponse(c, http.StatusBadRequest, "No annotations specified", nil)
 		return
 	}
 
 	if len(req.AnnotationIDs) > 100 {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Too many annotations (max 100)")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Too many annotations (max 100)", nil)
 		return
 	}
 
-	database := db.GetDB()
+	database := db.DB
 	response, err := performBulkAction(database, userUUID, req)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Bulk action failed: "+err.Error())
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Bulk action failed", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Bulk action completed", response)
+	utils.SuccessResponse(c, "Bulk action completed", response)
 }
 
 // ExportAnnotations exports annotations in various formats
 func ExportAnnotations(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
@@ -437,7 +452,7 @@ func ExportAnnotations(c *gin.Context) {
 	bookID := c.Query("book_id")
 	annotationType := c.Query("type")
 
-	database := db.GetDB()
+	database := db.DB
 
 	// Build query
 	query := database.Table("annotations a").
@@ -453,23 +468,9 @@ func ExportAnnotations(c *gin.Context) {
 		query = query.Where("a.type = ?", annotationType)
 	}
 
-	type ExportAnnotation struct {
-		ID           string    `json:"id"`
-		Type         string    `json:"type"`
-		PageNumber   int       `json:"page_number"`
-		SelectedText string    `json:"selected_text"`
-		Content      string    `json:"content"`
-		Color        string    `json:"color"`
-		Tags         []string  `json:"tags"`
-		BookTitle    string    `json:"book_title"`
-		BookAuthor   string    `json:"book_author"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
-	}
-
 	var annotations []ExportAnnotation
 	if err := query.Order("b.title, a.page_number").Find(&annotations).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to export annotations")
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to export annotations", nil)
 		return
 	}
 
@@ -479,7 +480,7 @@ func ExportAnnotations(c *gin.Context) {
 	case "json":
 		exportAnnotationsJSON(c, annotations)
 	default:
-		utils.ErrorResponse(c, http.StatusBadRequest, "Unsupported export format")
+		utils.ErrorResponse(c, http.StatusBadRequest, "Unsupported export format", nil)
 	}
 }
 
@@ -908,7 +909,7 @@ func exportAnnotationsJSON(c *gin.Context, annotations []ExportAnnotation) {
 	c.Header("Content-Type", "application/json")
 	c.Header("Content-Disposition", `attachment; filename="annotations.json"`)
 
-	utils.SuccessResponse(c, http.StatusOK, "Annotations exported successfully", map[string]interface{}{
+	utils.SuccessResponse(c, "Annotations exported successfully", map[string]interface{}{
 		"annotations": annotations,
 		"exported_at": time.Now(),
 		"count":       len(annotations),

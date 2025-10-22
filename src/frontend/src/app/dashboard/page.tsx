@@ -33,10 +33,17 @@ export default function DashboardPage() {
 
   const quickActions = [
     {
+      name: 'Browse Library',
+      description: 'Explore your collection of classical texts',
+      icon: BookOpenIcon,
+      href: '/books',
+      color: 'bg-green-500',
+    },
+    {
       name: 'Upload a Book',
       description: 'Add a new classical text to your library',
       icon: PlusIcon,
-      href: '/library/upload',
+      href: '/books/upload',
       color: 'bg-blue-500',
     },
     {
@@ -47,11 +54,39 @@ export default function DashboardPage() {
       color: 'bg-purple-500',
     },
     {
-      name: 'Continue Reading',
-      description: 'Pick up where you left off',
-      icon: BookOpenIcon,
-      href: '/library',
-      color: 'bg-green-500',
+      name: 'My Annotations',
+      description: 'View and manage all your notes and highlights',
+      icon: ClockIcon, // Using ClockIcon as a placeholder since we don't have a notes icon
+      href: '/annotations',
+      color: 'bg-yellow-500',
+    },
+    {
+      name: 'My Profile',
+      description: 'View statistics and manage account settings',
+      icon: ChartBarIcon,
+      href: '/profile',
+      color: 'bg-indigo-500',
+    },
+    {
+      name: 'Search Library',
+      description: 'Find content across all books and annotations',
+      icon: ChartBarIcon, // Using as placeholder
+      href: '/search',
+      color: 'bg-gray-500',
+    },
+    {
+      name: 'Reading Statistics',
+      description: 'View detailed analytics and reading insights',
+      icon: ChartBarIcon,
+      href: '/stats',
+      color: 'bg-orange-500',
+    },
+    {
+      name: 'Analytics Dashboard',
+      description: 'Interactive charts and reading insights',
+      icon: ChartBarIcon,
+      href: '/analytics',
+      color: 'bg-pink-500',
     },
   ];
 
@@ -123,7 +158,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div>
           <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {quickActions.map((action) => (
               <a
                 key={action.name}
@@ -194,7 +229,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="mt-6">
                   <a
-                    href="/library"
+                    href="/books"
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                   >
                     Browse Library

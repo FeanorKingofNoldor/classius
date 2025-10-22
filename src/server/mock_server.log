@@ -1,0 +1,5 @@
+🚀 Mock Classius API server running on port 8082
+📊 Analytics endpoint: http://localhost:8082/api/stats/books
+❤️  Health endpoint: http://localhost:8082/api/health
+POST /api/v1/auth/register
+POST /api/v1/auth/register

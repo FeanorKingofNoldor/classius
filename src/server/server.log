@@ -1,0 +1,9 @@
+2025/10/21 17:29:47 ✅ Database connected successfully
+2025/10/21 17:29:47 🔄 Running database migrations...
+
+2025/10/21 17:29:47 [32m/home/feanor/classius/src/server/internal/db/db.go:100
+[0m[33m[1.906ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+
+2025/10/21 17:29:47 [31;1m/home/feanor/classius/src/server/internal/db/db.go:100 [35;1mERROR: relation "users" already exists (SQLSTATE 42P07)
+[0m[33m[0.166ms] [34;1m[rows:0][0m CREATE TABLE "users" ("id" uuid DEFAULT gen_random_uuid(),"created_at" timestamptz,"updated_at" timestamptz,"deleted_at" timestamptz,"username" varchar(50) NOT NULL,"email" varchar(255) NOT NULL,"password_hash" varchar(255) NOT NULL,"full_name" varchar(255),"avatar_url" text,"subscription_tier" varchar(20) DEFAULT 'free',"last_active" timestamptz,PRIMARY KEY ("id"))
+2025/10/21 17:29:47 Failed to run migrations: failed to migrate database: ERROR: relation "users" already exists (SQLSTATE 42P07)

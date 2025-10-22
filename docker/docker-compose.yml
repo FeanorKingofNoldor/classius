@@ -1,0 +1,43 @@
+# Classius Production Docker Compose
+# Simplified production setup focusing on core services
+
+services:
+  # PostgreSQL database for user data, books, annotations
+  postgres:
+    image: postgres:15-alpine
+    container_name: classius-postgres-prod
+    environment:
+      POSTGRES_DB: classius
+      POSTGRES_USER: classius
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-classius_secure_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+  # Redis cache for sessions and AI response caching
+  redis:
+    image: redis:7-alpine
+    container_name: classius-redis-prod
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - classius-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  classius-network:
+    driver: bridge

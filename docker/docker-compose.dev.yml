@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for user data, books, annotations
+  postgres:
+    image: postgres:15-alpine
+    container_name: classius-postgres
+    environment:
+      POSTGRES_DB: classius_dev
+      POSTGRES_USER: classius
+      POSTGRES_PASSWORD: classius_dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+  # Redis cache for sessions and AI response caching
+  redis:
+    image: redis:7-alpine
+    container_name: classius-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - classius-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # MinIO for file storage (books, user content, generated images)
+  minio:
+    image: minio/minio:latest
+    container_name: classius-minio
+    environment:
+      MINIO_ROOT_USER: classius
+      MINIO_ROOT_PASSWORD: classius123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - classius-network
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+
+  # Adminer for database management (optional)
+  adminer:
+    image: adminer:latest
+    container_name: classius-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - classius-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # MailHog for email testing (development only)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: classius-mailhog
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web interface
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  classius-network:
+    driver: bridge

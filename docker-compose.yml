@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: classius-postgres
+    environment:
+      POSTGRES_DB: classius_dev
+      POSTGRES_USER: classius
+      POSTGRES_PASSWORD: classius_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/server/internal/db/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: classius-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+  # Classius Server
+  server:
+    build:
+      context: ./src/server
+      dockerfile: Dockerfile
+    container_name: classius-server
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=classius_dev
+      - DATABASE_USER=classius
+      - DATABASE_PASSWORD=classius_dev_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SERVER_PORT=8080
+      - JWT_SECRET=classius-dev-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/root/uploads
+      - ./logs:/root/logs
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+  # pgAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: classius-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@classius.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - classius-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  classius-network:
+    driver: bridge

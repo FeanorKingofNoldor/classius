@@ -1,0 +1,96 @@
+# Classius Server Configuration
+
+# Server settings
+server:
+  port: "8081"
+  host: "0.0.0.0"
+
+# Environment
+environment: "development"  # development, staging, production
+
+# Database configuration
+database:
+  host: "localhost"
+  port: 5432
+  name: "classius_dev"
+  user: "classius"
+  password: "classius_dev_password"
+  sslmode: "disable"
+
+# Redis configuration (optional, for caching and rate limiting)
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+
+# JWT configuration
+jwt:
+  secret: "classius-dev-secret-key-change-in-production"
+  access_token_duration: "24h"
+  refresh_token_duration: "168h"  # 7 days
+
+# File storage
+storage:
+  type: "local"  # local, s3, minio
+  path: "./uploads"
+  max_file_size: "50MB"
+
+# AI/Sage configuration
+ai:
+  provider: "openai"  # openai, anthropic, local
+  openai:
+    api_key: ""  # Set via environment variable
+    model: "gpt-4"
+    max_tokens: 1000
+  anthropic:
+    api_key: ""  # Set via environment variable
+    model: "claude-3-sonnet-20240229"
+
+# Email configuration (for notifications)
+email:
+  provider: "smtp"  # smtp, sendgrid, mailgun
+  smtp:
+    host: "localhost"
+    port: 1025
+    username: ""
+    password: ""
+
+# Logging
+logging:
+  level: "info"  # debug, info, warn, error
+  format: "json"  # json, text
+  file: "./logs/classius.log"
+
+# Rate limiting
+rate_limiting:
+  enabled: true
+  requests_per_minute: 60
+  burst: 10
+
+# CORS settings
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+    - "http://127.0.0.1:3000"
+  allowed_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowed_headers:
+    - "Origin"
+    - "Content-Type"
+    - "Authorization"
+    - "X-Requested-With"
+    - "Accept"
+
+# Features flags
+features:
+  user_registration: true
+  book_upload: true
+  ai_sage: true
+  community_discussions: false
+  paid_content: false

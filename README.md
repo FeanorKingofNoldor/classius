@@ -1,5 +1,5 @@
 # CLASSIUS
-## *The Modern Greek Gymnasium - Mind, Body & Spirit*
+## *The Modern Greek Gymnasium - Mind & Spirit*
 
 > "A device for lifelong learning. Read the great books in their original languages. Train your body like an ancient athlete. Live deliberately. One device, one lifetime."
 
@@ -12,11 +12,13 @@ Classius is a purpose-built e-ink reading device for classical education that co
 - **📚 Complete Library** - 3,000+ years of great books from all civilizations
 - **🏛️ Original Languages** - Read Greek, Latin, Sanskrit, Arabic, Chinese with AI support  
 - **🤖 AI Tutor** - Voice-activated explanations for difficult passages
+- **🎨 Art Integration** - View classical artworks contextually while reading
 - **💬 Community** - Discuss passages with thousands of readers worldwide
 - **✍️ Handwritten Notes** - Take notes with stylus on e-ink paper
+- **👨‍🏫 Expert Notes** - Follow professors and scholars to see their published annotations
 - **🎵 Whistle Control** - Turn pages hands-free with your personal whistle
 - **🌍 Universal Translation** - All texts available in 12 major languages
-- **☕ Scholar's Marketplace** - Premium coffee, tea, and supplements curated for readers
+- **☕ Scholar's Marketplace** - Premium coffee and tea curated for readers
 - **🔧 Right to Repair** - User-moddable, repairable, heirloom quality
 
 ### **ZERO ADS, EVER** - We make money by selling products you want, not your attention.
@@ -45,7 +47,7 @@ Classius is a purpose-built e-ink reading device for classical education that co
 
 1. **Timeless Knowledge First** - Great books from all civilizations
 2. **Active Learning** - Write, discuss, practice what you learn  
-3. **Mind-Body Integration** - Training plans alongside reading
+3. **Deep Learning Integration** - AI tutor and community insights alongside reading
 4. **User Ownership** - Right to repair, no DRM, privacy-first
 5. **Zero Advertising** - Clean, distraction-free interface forever
 6. **Lifetime Companion** - Heirloom quality, 10+ year support
@@ -70,11 +72,52 @@ Classius is a purpose-built e-ink reading device for classical education that co
 
 ## Documentation
 
-- **[📖 Master Vision Document](CLASSIUS_MASTER_COMPLETE.md)** - Complete product specification
-- **[🚀 Deployment Plan](DEPLOYMENT_PLAN.md)** - Go-to-market strategy and timeline
-- **[📋 Hardware Specs](files/CLASSIUS_PART_1_VISION_AND_HARDWARE.md)** - Detailed hardware specifications
-- **[💻 Software Features](files/CLASSIUS_PART_2_SOFTWARE_AND_UX.md)** - Complete UX and feature set
-- **[📚 Content Library](files/CLASSIUS_PART_3_CONTENT_AND_LANGUAGES.md)** - 500+ books, language learning
+### 📚 **Vision & Concepts**
+- **[📝 Master Vision Document](docs/vision/CLASSIUS_MASTER_COMPLETE.md)** - Complete product specification
+- **[🏛️ Hardware Specifications](docs/vision/CLASSIUS_PART_1_VISION_AND_HARDWARE.md)** - Detailed hardware specs
+- **[🎯 Complete Vision](docs/vision/CLASSIUS_COMPLETE_VISION.md)** - Full feature overview
+
+### 🔧 **Technical Implementation**
+- **[🏗️ Technical Architecture](docs/technical/CLASSIUS_TECHNICAL_ARCHITECTURE.md)** - How we build it
+- **[🗺️ Development Roadmap](docs/technical/CLASSIUS_DEVELOPMENT_ROADMAP.md)** - 16 development blocks
+- **[💻 Software & UX Design](docs/technical/CLASSIUS_PART_2_SOFTWARE_AND_UX.md)** - Complete UX features
+
+### 💼 **Business & Strategy**
+- **[🚀 Deployment Plan](docs/business/DEPLOYMENT_PLAN.md)** - Go-to-market strategy
+- **[👥 Social & Clubs System](docs/business/CLASSIUS_UPDATES_SOCIAL_CLUBS.md)** - Community features
+
+### 📖 **Content & Features**
+- **[📚 Content Library](docs/content/CLASSIUS_PART_3_CONTENT_AND_LANGUAGES.md)** - 500+ books, languages
+- **[👨‍🏫 Note Publishing](docs/content/CLASSIUS_NOTE_PUBLISHING_SYSTEM.md)** - Expert annotations
+- **[🎨 Art Integration](docs/content/CLASSIUS_ART_INTEGRATION_SYSTEM.md)** - Visual & cultural content
+- **[📜 Reading List](docs/content/complete_classical_education_reading_list.md)** - Curated classics
+
+---
+
+## 🚀 Getting Started
+
+### Quick Setup
+```bash
+# Clone and enter directory
+git clone <repository-url>
+cd classius
+
+# Install dependencies and setup environment
+make install-deps
+make setup
+
+# Start development environment
+make dev
+```
+
+### Development Commands
+```bash
+make help           # Show all available commands
+make dev            # Start full development environment
+make build          # Build all components
+make test           # Run all tests
+make clean          # Clean build artifacts
+```
 
 ---
 
@@ -82,17 +125,29 @@ Classius is a purpose-built e-ink reading device for classical education that co
 
 ```
 classius/
-├── README.md                           # This file
-├── DEPLOYMENT_PLAN.md                  # Launch strategy  
-├── CLASSIUS_MASTER_COMPLETE.md         # Complete vision document
-├── files/                              # Individual component documents
-│   ├── CLASSIUS_PART_1_VISION_AND_HARDWARE.md
-│   ├── CLASSIUS_PART_2_SOFTWARE_AND_UX.md  
-│   ├── CLASSIUS_PART_3_CONTENT_AND_LANGUAGES.md
-│   └── complete_classical_education_reading_list.md
-├── hardware/                           # Hardware designs (coming soon)
-├── software/                          # Software prototypes (coming soon)
-└── docs/                              # Additional documentation
+├── 📄 README.md                        # This file
+├── 🔧 Makefile                         # Development workflow
+├── 📚 docs/                            # Documentation
+│   ├── vision/                        # Product vision & concepts
+│   ├── technical/                     # Technical specs & architecture  
+│   ├── business/                      # Business strategy & deployment
+│   └── content/                       # Content systems & features
+├── 💻 src/                            # Source code
+│   ├── device/                        # Qt/C++ device application
+│   │   ├── ui/                        # QML user interfaces
+│   │   ├── core/                      # Core reading engine
+│   │   ├── audio/                     # Whistle detection system
+│   │   └── tests/                     # Device tests
+│   ├── server/                        # Go backend services
+│   │   ├── cmd/                       # Command-line applications
+│   │   ├── internal/                  # Internal packages
+│   │   ├── ai/                        # Python AI services
+│   │   └── tests/                     # Server tests
+│   └── shared/                        # Shared protocols & types
+├── 🐳 docker/                         # Container configurations
+├── 🔨 scripts/                        # Development scripts
+├── 🛠️ tools/                          # Development tools
+└── 🧪 tests/                          # Integration tests
 ```
 
 ---

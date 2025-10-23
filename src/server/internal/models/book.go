@@ -188,3 +188,20 @@ func GetMimeType(fileType string) string {
 	}
 	return "application/octet-stream"
 }
+
+// BookContent represents the extracted text content of a book
+type BookContent struct {
+	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	BookID    uuid.UUID      `json:"book_id" gorm:"type:uuid;not null;uniqueIndex"`
+	FullText  string         `json:"full_text" gorm:"type:text;not null"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	
+	// Relationship
+	Book      Book           `json:"book,omitempty" gorm:"foreignKey:BookID"`
+}
+
+// TableName returns the table name for the BookContent model
+func (BookContent) TableName() string {
+	return "book_contents"
+}

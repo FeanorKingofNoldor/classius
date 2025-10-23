@@ -19,9 +19,9 @@ import { useRouter, usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Library', href: '/library', icon: BookOpenIcon },
+  { name: 'Library', href: '/books', icon: BookOpenIcon },
   { name: 'AI Sage', href: '/sage', icon: ChatBubbleLeftRightIcon },
-  { name: 'Tags', href: '/tags', icon: TagIcon },
+  { name: 'Analytics', href: '/analytics', icon: TagIcon },
   { name: 'Profile', href: '/profile', icon: UserIcon },
 ];
 

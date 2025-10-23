@@ -442,6 +442,52 @@ func (h *BookHandlers) GetBookContent(c *gin.Context) {
 	c.File(book.FilePath)
 }
 
+// GetBookText retrieves extracted text content for reading
+// GET /api/books/:id/text
+func (h *BookHandlers) GetBookText(c *gin.Context) {
+	// Get user ID from context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "User not authenticated", nil)
+		return
+	}
+
+	userIDStr, ok := userID.(string)
+	if !ok {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Invalid user ID format", nil)
+		return
+	}
+
+	userUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", err)
+		return
+	}
+
+	// Parse book ID from URL
+	bookIDStr := c.Param("id")
+	bookID, err := uuid.Parse(bookIDStr)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid book ID", err)
+		return
+	}
+
+	// Get book content
+	content, err := h.bookService.GetBookContent(c.Request.Context(), userUUID, bookID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			utils.ErrorResponse(c, http.StatusNotFound, "Book or content not found", err)
+		} else if strings.Contains(err.Error(), "not yet extracted") {
+			utils.ErrorResponse(c, http.StatusAccepted, "Book is still being processed", err)
+		} else {
+			utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve book content", err)
+		}
+		return
+	}
+
+	utils.SuccessResponse(c, "Book content retrieved successfully", content)
+}
+
 // GetBookStats returns statistics about user's book collection
 // GET /api/books/stats
 func (h *BookHandlers) GetBookStats(c *gin.Context) {

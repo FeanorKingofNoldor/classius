@@ -79,6 +79,11 @@ type ReadingProgress struct {
 	Book Book `json:"book,omitempty"`
 }
 
+// TableName specifies the table name for ReadingProgress
+func (ReadingProgress) TableName() string {
+	return "reading_progress"
+}
+
 // Annotation represents highlights, notes, and other annotations
 type Annotation struct {
 	BaseModel

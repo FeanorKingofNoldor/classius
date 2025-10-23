@@ -262,7 +262,7 @@ func buildOverviewStats(database *gorm.DB, userID uuid.UUID, dateFilter *time.Ti
 		return nil, err
 	}
 
-	if err := progressQuery.Select("MAX(reading_streak_days)").Scan(&longestStreak).Error; err != nil {
+	if err := progressQuery.Select("COALESCE(MAX(reading_streak_days), 0)").Scan(&longestStreak).Error; err != nil {
 		return nil, err
 	}
 
@@ -530,9 +530,9 @@ func buildContentAnalytics(database *gorm.DB, userID uuid.UUID, dateFilter *time
 	var formatResults []FormatResult
 	formatQuery := `
 		SELECT 
-			UPPER(b.file_type) as format,
+			UPPER(b.file_format) as format,
 			COUNT(*) as count,
-			COALESCE(SUM(b.file_size), 0) as total_size
+			0 as total_size
 		FROM user_books ub
 		JOIN books b ON ub.book_id = b.id
 		WHERE ub.user_id = ? AND ub.deleted_at IS NULL AND b.deleted_at IS NULL
@@ -544,7 +544,7 @@ func buildContentAnalytics(database *gorm.DB, userID uuid.UUID, dateFilter *time
 		args = append(args, dateFilter)
 	}
 
-	formatQuery += " GROUP BY b.file_type ORDER BY count DESC"
+	formatQuery += " GROUP BY b.file_format ORDER BY count DESC"
 
 	if err := database.Raw(formatQuery, args...).Scan(&formatResults).Error; err != nil {
 		return nil, err

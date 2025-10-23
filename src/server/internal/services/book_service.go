@@ -628,15 +628,84 @@ func (s *BookService) handleBookTags(tx *gorm.DB, userID, bookID uuid.UUID, tagN
 
 // processBookInBackground processes a book to extract additional metadata
 func (s *BookService) processBookInBackground(bookID uuid.UUID) {
-	// This would run text analysis, word counting, etc.
-	// For now, just update the status
-	time.Sleep(2 * time.Second) // Simulate processing
+	// Get the book
+	var book models.Book
+	if err := s.db.Where("id = ?", bookID).First(&book).Error; err != nil {
+		fmt.Printf("Failed to find book %s: %v\n", bookID, err)
+		s.updateBookStatus(bookID, models.BookStatusError)
+		return
+	}
 
-	if err := s.db.Model(&models.Book{}).
-		Where("id = ?", bookID).
-		Update("status", models.BookStatusActive).Error; err != nil {
+	// Extract text from the book file
+	extractor := NewTextExtractor()
+	content, err := extractor.ExtractText(book.FilePath, book.FileType)
+	if err != nil {
+		fmt.Printf("Failed to extract text from book %s: %v\n", bookID, err)
+		s.updateBookStatus(bookID, models.BookStatusError)
+		return
+	}
+
+	// Store extracted content
+	bookContent := &models.BookContent{
+		ID:       uuid.New(),
+		BookID:   bookID,
+		FullText: content.Text,
+	}
+
+	if err := s.db.Create(bookContent).Error; err != nil {
+		fmt.Printf("Failed to store book content for %s: %v\n", bookID, err)
+		s.updateBookStatus(bookID, models.BookStatusError)
+		return
+	}
+
+	// Update book with extracted metadata
+	updates := map[string]interface{}{
+		"page_count":          content.PageCount,
+		"word_count":          content.WordCount,
+		"status":              models.BookStatusActive,
+		"metadata.has_images": content.HasImages,
+		"metadata.has_toc":    content.HasTOC,
+	}
+
+	if err := s.db.Model(&models.Book{}).Where("id = ?", bookID).Updates(updates).Error; err != nil {
+		fmt.Printf("Failed to update book %s metadata: %v\n", bookID, err)
+	}
+
+	fmt.Printf("Successfully processed book %s: %d pages, %d words\n", bookID, content.PageCount, content.WordCount)
+}
+
+// updateBookStatus updates the status of a book
+func (s *BookService) updateBookStatus(bookID uuid.UUID, status models.BookStatus) {
+	if err := s.db.Model(&models.Book{}).Where("id = ?", bookID).Update("status", status).Error; err != nil {
 		fmt.Printf("Failed to update book %s status: %v\n", bookID, err)
 	}
+}
+
+// GetBookContent retrieves the extracted text content of a book
+func (s *BookService) GetBookContent(ctx context.Context, userID, bookID uuid.UUID) (*models.BookContent, error) {
+	// First verify the user has access to this book
+	var book models.Book
+	if err := s.db.WithContext(ctx).
+		Where("id = ? AND user_id = ?", bookID, userID).
+		First(&book).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("book not found")
+		}
+		return nil, fmt.Errorf("failed to retrieve book: %w", err)
+	}
+
+	// Get the book content
+	var content models.BookContent
+	if err := s.db.WithContext(ctx).
+		Where("book_id = ?", bookID).
+		First(&content).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("book content not yet extracted")
+		}
+		return nil, fmt.Errorf("failed to retrieve book content: %w", err)
+	}
+
+	return &content, nil
 }
 
 // GetDB returns the database instance (for handlers that need direct access)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -42,6 +42,12 @@ export default function BookUploadPage() {
 
   const supportedTypes = ['application/pdf', 'application/epub+zip', 'text/plain', 'application/x-mobipocket-ebook'];
   const maxFileSize = 100 * 1024 * 1024; // 100MB
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isAuthenticated, router]);
 
   // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -164,7 +170,7 @@ export default function BookUploadPage() {
         uploadData.append('tags', formData.tags.trim());
       }
 
-      const response = await fetch('http://localhost:8080/api/books/upload', {
+      const response = await fetch('http://localhost:8081/api/v1/books/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -192,8 +198,11 @@ export default function BookUploadPage() {
   };
 
   if (!isAuthenticated) {
-    router.push('/auth/login');
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
   const formatFileSize = (bytes: number) => {

@@ -1,9 +1,117 @@
-2025/10/21 17:29:47 ✅ Database connected successfully
-2025/10/21 17:29:47 🔄 Running database migrations...
+2025/10/23 09:08:48 ✅ Database connected successfully
+2025/10/23 09:08:48 Warning: Failed to initialize Sage service: failed to create AI service: openai api_key is required
+2025/10/23 09:08:48 Sage endpoints will not be available
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
 
-2025/10/21 17:29:47 [32m/home/feanor/classius/src/server/internal/db/db.go:100
-[0m[33m[1.906ms] [34;1m[rows:1][0m SELECT count(*) FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' AND table_type = 'BASE TABLE'
+[GIN-debug] GET    /health                   --> main.setupRouter.func1 (4 handlers)
+[GIN-debug] POST   /api/v1/auth/register     --> github.com/classius/server/internal/handlers.Register (4 handlers)
+[GIN-debug] POST   /api/v1/auth/login        --> github.com/classius/server/internal/handlers.Login (4 handlers)
+[GIN-debug] POST   /api/v1/auth/logout       --> github.com/classius/server/internal/handlers.Logout (4 handlers)
+[GIN-debug] POST   /api/v1/auth/refresh      --> github.com/classius/server/internal/handlers.RefreshToken (4 handlers)
+[GIN-debug] GET    /api/v1/user/profile      --> github.com/classius/server/internal/handlers.GetUserProfile (5 handlers)
+[GIN-debug] PUT    /api/v1/user/profile      --> github.com/classius/server/internal/handlers.UpdateUserProfile (5 handlers)
+[GIN-debug] GET    /api/v1/user/preferences  --> github.com/classius/server/internal/handlers.GetUserPreferences (5 handlers)
+[GIN-debug] PUT    /api/v1/user/preferences  --> github.com/classius/server/internal/handlers.UpdateUserPreferences (5 handlers)
+[GIN-debug] GET    /api/v1/user/goals        --> github.com/classius/server/internal/handlers.GetReadingGoals (5 handlers)
+[GIN-debug] PUT    /api/v1/user/goals        --> github.com/classius/server/internal/handlers.UpdateReadingGoals (5 handlers)
+[GIN-debug] POST   /api/v1/user/change-password --> github.com/classius/server/internal/handlers.ChangePassword (5 handlers)
+[GIN-debug] GET    /api/v1/user/stats        --> github.com/classius/server/internal/handlers.GetAccountStats (5 handlers)
+[GIN-debug] DELETE /api/v1/user/account      --> github.com/classius/server/internal/handlers.DeleteAccount (5 handlers)
+[GIN-debug] GET    /api/v1/user/progress     --> github.com/classius/server/internal/handlers.GetUserProgress (5 handlers)
+[GIN-debug] POST   /api/v1/user/progress     --> github.com/classius/server/internal/handlers.SaveUserProgress (5 handlers)
+[GIN-debug] GET    /api/v1/books/            --> github.com/classius/server/internal/handlers.(*BookHandlers).GetBooks-fm (5 handlers)
+[GIN-debug] POST   /api/v1/books/upload      --> github.com/classius/server/internal/handlers.(*BookHandlers).UploadBook-fm (5 handlers)
+[GIN-debug] GET    /api/v1/books/stats       --> github.com/classius/server/internal/handlers.(*BookHandlers).GetBookStats-fm (5 handlers)
+[GIN-debug] GET    /api/v1/books/tags        --> github.com/classius/server/internal/handlers.(*BookHandlers).GetTags-fm (5 handlers)
+[GIN-debug] POST   /api/v1/books/tags        --> github.com/classius/server/internal/handlers.(*BookHandlers).CreateTag-fm (5 handlers)
+[GIN-debug] DELETE /api/v1/books/tags/:id    --> github.com/classius/server/internal/handlers.(*BookHandlers).DeleteTag-fm (5 handlers)
+[GIN-debug] GET    /api/v1/books/:id         --> github.com/classius/server/internal/handlers.(*BookHandlers).GetBook-fm (5 handlers)
+[GIN-debug] PUT    /api/v1/books/:id         --> github.com/classius/server/internal/handlers.(*BookHandlers).UpdateBook-fm (5 handlers)
+[GIN-debug] DELETE /api/v1/books/:id         --> github.com/classius/server/internal/handlers.(*BookHandlers).DeleteBook-fm (5 handlers)
+[GIN-debug] GET    /api/v1/books/:id/download --> github.com/classius/server/internal/handlers.(*BookHandlers).DownloadBook-fm (5 handlers)
+[GIN-debug] GET    /api/v1/books/:id/content --> github.com/classius/server/internal/handlers.(*BookHandlers).GetBookContent-fm (5 handlers)
+[GIN-debug] GET    /api/v1/annotations/      --> github.com/classius/server/internal/handlers.GetAnnotationsAdvanced (5 handlers)
+[GIN-debug] POST   /api/v1/annotations/      --> github.com/classius/server/internal/handlers.CreateAnnotationEnhanced (5 handlers)
+[GIN-debug] PUT    /api/v1/annotations/:id   --> github.com/classius/server/internal/handlers.UpdateAnnotationEnhanced (5 handlers)
+[GIN-debug] DELETE /api/v1/annotations/:id   --> github.com/classius/server/internal/handlers.DeleteAnnotationEnhanced (5 handlers)
+[GIN-debug] POST   /api/v1/annotations/bulk  --> github.com/classius/server/internal/handlers.BulkAnnotationActions (5 handlers)
+[GIN-debug] GET    /api/v1/annotations/export --> github.com/classius/server/internal/handlers.ExportAnnotations (5 handlers)
+[GIN-debug] GET    /api/v1/progress/         --> github.com/classius/server/internal/handlers.GetReadingProgress (5 handlers)
+[GIN-debug] POST   /api/v1/progress/         --> github.com/classius/server/internal/handlers.UpdateReadingProgress (5 handlers)
+[GIN-debug] GET    /api/v1/progress/stats    --> github.com/classius/server/internal/handlers.GetReadingStats (5 handlers)
+[GIN-debug] GET    /api/v1/sessions/         --> github.com/classius/server/internal/handlers.GetReadingSessions (5 handlers)
+[GIN-debug] POST   /api/v1/sessions/start/:book_id --> github.com/classius/server/internal/handlers.StartReadingSession (5 handlers)
+[GIN-debug] PUT    /api/v1/sessions/end/:session_id --> github.com/classius/server/internal/handlers.EndReadingSession (5 handlers)
+[GIN-debug] GET    /api/v1/bookmarks/        --> github.com/classius/server/internal/handlers.GetBookmarks (5 handlers)
+[GIN-debug] POST   /api/v1/bookmarks/        --> github.com/classius/server/internal/handlers.CreateBookmark (5 handlers)
+[GIN-debug] PUT    /api/v1/bookmarks/:id     --> github.com/classius/server/internal/handlers.UpdateBookmark (5 handlers)
+[GIN-debug] DELETE /api/v1/bookmarks/:id     --> github.com/classius/server/internal/handlers.DeleteBookmark (5 handlers)
+[GIN-debug] GET    /api/v1/stats/books       --> github.com/classius/server/internal/handlers.GetBookStats (5 handlers)
+[GIN-debug] GET    /api/v1/search/           --> github.com/classius/server/internal/handlers.GlobalSearch (5 handlers)
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+2025/10/23 09:08:48 🚀 Classius server starting on port 8081
+2025/10/23 09:08:48 📖 API documentation available at http://localhost:8081/docs
+[GIN] 2025/10/23 - 09:16:03 | 200 |       49.16µs |             ::1 | GET      "/health"
 
-2025/10/21 17:29:47 [31;1m/home/feanor/classius/src/server/internal/db/db.go:100 [35;1mERROR: relation "users" already exists (SQLSTATE 42P07)
-[0m[33m[0.166ms] [34;1m[rows:0][0m CREATE TABLE "users" ("id" uuid DEFAULT gen_random_uuid(),"created_at" timestamptz,"updated_at" timestamptz,"deleted_at" timestamptz,"username" varchar(50) NOT NULL,"email" varchar(255) NOT NULL,"password_hash" varchar(255) NOT NULL,"full_name" varchar(255),"avatar_url" text,"subscription_tier" varchar(20) DEFAULT 'free',"last_active" timestamptz,PRIMARY KEY ("id"))
-2025/10/21 17:29:47 Failed to run migrations: failed to migrate database: ERROR: relation "users" already exists (SQLSTATE 42P07)
+2025/10/23 09:20:59 [31;1m/home/feanor/classius/src/server/internal/handlers/auth.go:82 [35;1mERROR: column users.deleted_at does not exist (SQLSTATE 42703)
+[0m[33m[8.163ms] [34;1m[rows:0][0m SELECT * FROM "users" WHERE (email = 'test@classius.dev' OR username = 'testuser') AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:20:59 [31;1m/home/feanor/classius/src/server/internal/handlers/auth.go:109 [35;1mERROR: column "deleted_at" of relation "users" does not exist (SQLSTATE 42703)
+[0m[33m[0.320ms] [34;1m[rows:0][0m INSERT INTO "users" ("created_at","updated_at","deleted_at","username","email","password_hash","full_name","avatar_url","subscription_tier","last_active","id") VALUES ('2025-10-23 07:20:59.886','2025-10-23 07:20:59.886',NULL,'testuser','test@classius.dev','$2a$10$KaptT/.PtfSpiYkqbUzb9OzQOVCUmqdWXzxfdrFlMAXsQUCSEXEXG','Test User','','free',NULL,'6472c1e4-b8a6-47fc-8ae5-cb28f9a905c6') RETURNING "id"
+[GIN] 2025/10/23 - 09:20:59 | 500 |   57.845277ms |             ::1 | POST     "/api/v1/auth/register"
+
+2025/10/23 09:22:47 [31;1m/home/feanor/classius/src/server/internal/handlers/auth.go:82 [35;1mERROR: permission denied for table users (SQLSTATE 42501)
+[0m[33m[2.848ms] [34;1m[rows:0][0m SELECT * FROM "users" WHERE (email = 'test@classius.dev' OR username = 'testuser') AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:22:47 [31;1m/home/feanor/classius/src/server/internal/handlers/auth.go:109 [35;1mERROR: permission denied for table users (SQLSTATE 42501)
+[0m[33m[0.582ms] [34;1m[rows:0][0m INSERT INTO "users" ("created_at","updated_at","deleted_at","username","email","password_hash","full_name","avatar_url","subscription_tier","last_active","id") VALUES ('2025-10-23 07:22:47.242','2025-10-23 07:22:47.242',NULL,'testuser','test@classius.dev','$2a$10$wQBfzLXFIYzs3sN/iQ8P1OXonu.XdRKFnZ3fsNomMLMGt.YEcgUGG','Test User','','free',NULL,'bccab562-aa1d-4013-af90-9b71591df5f4') RETURNING "id"
+[GIN] 2025/10/23 - 09:22:47 | 500 |   52.863749ms |             ::1 | POST     "/api/v1/auth/register"
+
+2025/10/23 09:23:28 [31;1m/home/feanor/classius/src/server/internal/handlers/auth.go:82 [35;1mrecord not found
+[0m[33m[1.882ms] [34;1m[rows:0][0m SELECT * FROM "users" WHERE (email = 'test2@classius.dev' OR username = 'testuser2') AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:23:28 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:109
+[0m[33m[0.790ms] [34;1m[rows:1][0m INSERT INTO "users" ("created_at","updated_at","deleted_at","username","email","password_hash","full_name","avatar_url","subscription_tier","last_active","id") VALUES ('2025-10-23 07:23:28.204','2025-10-23 07:23:28.204',NULL,'testuser2','test2@classius.dev','$2a$10$mZONS/gUFP5qVYYQA3gK9eoJlh8ksmXm3KCuN0inUdeJUQR4ajQzG','Test User Two','','free',NULL,'d4670956-a309-4fee-abd5-2cfc9b10598a') RETURNING "id"
+[GIN] 2025/10/23 - 09:23:28 | 201 |   52.177748ms |             ::1 | POST     "/api/v1/auth/register"
+
+2025/10/23 09:23:45 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:173
+[0m[33m[1.649ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE email = 'test2@classius.dev' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:23:45 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:200
+[0m[33m[1.306ms] [34;1m[rows:1][0m UPDATE "users" SET "created_at"='2025-10-23 09:23:28.204',"updated_at"='2025-10-23 07:23:45.937',"deleted_at"=NULL,"username"='testuser2',"email"='test2@classius.dev',"password_hash"='$2a$10$mZONS/gUFP5qVYYQA3gK9eoJlh8ksmXm3KCuN0inUdeJUQR4ajQzG',"full_name"='Test User Two',"avatar_url"='',"subscription_tier"='free',"last_active"='2025-10-23 09:23:45.937' WHERE "users"."deleted_at" IS NULL AND "id" = 'd4670956-a309-4fee-abd5-2cfc9b10598a'
+[GIN] 2025/10/23 - 09:23:45 | 200 |   52.952366ms |             ::1 | POST     "/api/v1/auth/login"
+
+2025/10/23 09:23:58 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:173
+[0m[33m[1.494ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE email = 'test2@classius.dev' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:23:58 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:200
+[0m[33m[1.125ms] [34;1m[rows:1][0m UPDATE "users" SET "created_at"='2025-10-23 09:23:28.204',"updated_at"='2025-10-23 07:23:58.631',"deleted_at"=NULL,"username"='testuser2',"email"='test2@classius.dev',"password_hash"='$2a$10$mZONS/gUFP5qVYYQA3gK9eoJlh8ksmXm3KCuN0inUdeJUQR4ajQzG',"full_name"='Test User Two',"avatar_url"='',"subscription_tier"='free',"last_active"='2025-10-23 09:23:58.631' WHERE "users"."deleted_at" IS NULL AND "id" = 'd4670956-a309-4fee-abd5-2cfc9b10598a'
+[GIN] 2025/10/23 - 09:23:58 | 200 |   51.953602ms |             ::1 | POST     "/api/v1/auth/login"
+
+2025/10/23 09:23:58 [32m/home/feanor/classius/src/server/internal/middleware/middleware.go:157
+[0m[33m[0.224ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE id = 'd4670956-a309-4fee-abd5-2cfc9b10598a' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:23:58 [31;1m/home/feanor/classius/src/server/internal/handlers/stats_handlers.go:244 [35;1mERROR: column "deleted_at" does not exist (SQLSTATE 42703)
+[0m[33m[0.631ms] [34;1m[rows:0][0m SELECT count(*) FROM "user_books" WHERE (user_id = 'd4670956-a309-4fee-abd5-2cfc9b10598a' AND deleted_at IS NULL) AND created_at >= '2024-10-23 09:23:58.637' AND "user_books"."deleted_at" IS NULL
+[GIN] 2025/10/23 - 09:23:58 | 500 |     974.924µs |             ::1 | GET      "/api/v1/stats/books?range=year"
+
+2025/10/23 09:24:38 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:173
+[0m[33m[1.589ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE email = 'test2@classius.dev' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:24:38 [32m/home/feanor/classius/src/server/internal/handlers/auth.go:200
+[0m[33m[1.049ms] [34;1m[rows:1][0m UPDATE "users" SET "created_at"='2025-10-23 09:23:28.204',"updated_at"='2025-10-23 07:24:38.753',"deleted_at"=NULL,"username"='testuser2',"email"='test2@classius.dev',"password_hash"='$2a$10$mZONS/gUFP5qVYYQA3gK9eoJlh8ksmXm3KCuN0inUdeJUQR4ajQzG',"full_name"='Test User Two',"avatar_url"='',"subscription_tier"='free',"last_active"='2025-10-23 09:24:38.753' WHERE "users"."deleted_at" IS NULL AND "id" = 'd4670956-a309-4fee-abd5-2cfc9b10598a'
+[GIN] 2025/10/23 - 09:24:38 | 200 |   52.258543ms |             ::1 | POST     "/api/v1/auth/login"
+
+2025/10/23 09:24:38 [32m/home/feanor/classius/src/server/internal/middleware/middleware.go:157
+[0m[33m[0.259ms] [34;1m[rows:1][0m SELECT * FROM "users" WHERE id = 'd4670956-a309-4fee-abd5-2cfc9b10598a' AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT 1
+
+2025/10/23 09:24:38 [31;1m/home/feanor/classius/src/server/internal/handlers/stats_handlers.go:244 [35;1mERROR: column "created_at" does not exist (SQLSTATE 42703)
+[0m[33m[0.201ms] [34;1m[rows:0][0m SELECT count(*) FROM "user_books" WHERE (user_id = 'd4670956-a309-4fee-abd5-2cfc9b10598a' AND deleted_at IS NULL) AND created_at >= '2024-10-23 09:24:38.76' AND "user_books"."deleted_at" IS NULL
+[GIN] 2025/10/23 - 09:24:38 | 500 |     606.302µs |             ::1 | GET      "/api/v1/stats/books?range=year"
+[GIN] 2025/10/23 - 09:40:00 | 404 |       1.217µs |             ::1 | GET      "/api/v1/health"
+2025/10/23 09:40:21 🛑 Shutting down server...
+2025/10/23 09:40:21 ✅ Server stopped
+2025/10/23 09:40:21 ✅ Database connection closed

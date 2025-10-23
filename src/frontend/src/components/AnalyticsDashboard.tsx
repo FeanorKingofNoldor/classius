@@ -128,7 +128,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token');
 
-      const response = await fetch(`http://localhost:8082/api/stats/books?range=${timeRange}`, {
+      const response = await fetch(`http://localhost:8081/api/stats/books?range=${timeRange}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

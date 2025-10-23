@@ -219,6 +219,7 @@ func setupRouter(sageService *services.SageService, bookService *services.BookSe
 				books.DELETE("/:id", bookHandlers.DeleteBook)
 				books.GET("/:id/download", bookHandlers.DownloadBook)
 				books.GET("/:id/content", bookHandlers.GetBookContent)
+				books.GET("/:id/text", bookHandlers.GetBookText)
 			}
 
 			// Annotation routes
